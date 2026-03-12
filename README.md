@@ -4,6 +4,7 @@ Satura rādītājs:
 [Projekta apraksts](#projekta-apraksts)
 [Uzstādīšana](#-uzstādīšana)
 [Funkcionalitāte](#-funkcionalitātes)
+[Zināmie ierobežojumi](#-zināmie-ierobežojumi)
 
 ## Projekta apraksts
 Vienkāršs komandrindas rīks personīgo izdevumu uzskaitei.  
