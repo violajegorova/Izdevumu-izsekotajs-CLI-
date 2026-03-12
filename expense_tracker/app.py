@@ -1,4 +1,6 @@
+import export
 import logic
+from datetime import datetime
 
 CATEGORIES = ["Ēdiens", "Transports", "Izklaide", "Mājoklis", "Apģērbs", "Veselība", "Izglītība", "Hobiji", "Ceļojumi", "Citas kategorijas"]
 
@@ -49,6 +51,7 @@ def show_menu():
     print("3) Filtrēt pēc mēneša")
     print("4) Kopsavilkums pa kategorijām")
     print("5) Dzēst izdevumu")
+    print("6) Eksportēt uz CSV")
     print("7) Iziet")
     return input("\nIzvēlies darbību (1-7): ")
 
@@ -61,16 +64,50 @@ def main():
         if choice == "1":
             continue_adding = True
             while continue_adding:
-                try:
-                    date = input("Ievadi datumu (DD-MM-YYYY) vai atstāj tukšu šodienai: ").strip()
-                    amount = float(input("Ievadi izdevuma summu (EUR): ").strip())
+                date = input("Ievadi datumu (DD-MM-YYYY) vai atstāj tukšu šodienai: ").strip()
+                while date:
+                    try:
+                        datetime.strptime(date, "%d-%m-%Y")
+                        break
+                    except ValueError:
+                        print("Nederīgs datuma formāts. Lūdzu ievadiet datumu DD-MM-YYYY formātā.")
+                        date = input("Ievadi datumu (DD-MM-YYYY) vai atstāj tukšu šodienai: ").strip()
 
-                    print("\nKategorijas:")
-                    for i, cat in enumerate(CATEGORIES, 1):
-                        print(f"{i}) {cat}")
-                    category = int(input("Izvēlies kategoriju (1-10): ").strip())
+                while True:
+                    amount_input = input("Ievadi izdevuma summu (EUR): ").strip()
+                    try:
+                        amount = float(amount_input)
+                    except ValueError:
+                        print("Nederīga summa. Lūdzu ievadiet skaitli.")
+                        continue
+                    if amount <= 0:
+                        print("Izdevuma summa jābūt lielākai par 0.")
+                        continue
+                    break
+
+                print("\nKategorijas:")
+                for i, cat in enumerate(CATEGORIES, 1):
+                    print(f"{i}) {cat}")
+
+                while True:
+                    category_input = input(f"Izvēlies kategoriju (1-{len(CATEGORIES)}): ").strip()
+                    try:
+                        category = int(category_input)
+                    except ValueError:
+                        print("Nederīga ievade. Lūdzu ievadiet skaitli.")
+                        continue
+                    if not (1 <= category <= len(CATEGORIES)):
+                        print(f"Izdevuma kategorijai jābūt no 1 līdz {len(CATEGORIES)}.")
+                        continue
+                    break
+
+                while True:
                     description = input("Ievadi izdevuma aprakstu: ").strip()
+                    if description:
+                        break
+                    print("Izdevuma apraksts nedrīkst būt tukšs.")
 
+                try:
                     logic.add_expense(expense_date=date, amount=amount, category=category, description=description)
                     print("✓ Pievienots: {date} | {category} | {amount:.2f} | {description}".format(
                     date=date if date else "Šodien",
@@ -131,6 +168,16 @@ def main():
                     print(f"Izdevumi par {month:02d}-{year}:")
                     print_expenses_table(filtered)
                     print(f"Kopējā summa: {filtered_total:.2f}")
+
+                    while True:
+                        export_choice = input("Vai vēlies eksportēt šo mēneša sarakstu uz CSV? (Jā/nē): ").strip().lower()
+                        if export_choice in ["jā", "ja", "j"]:
+                            export.export_expenses_to_csv(filtered, f"izdevumi_{month:02d}_{year}.csv", total=filtered_total)
+                            break
+                        if export_choice in ["nē", "ne", "n"]:
+                            break
+                        print("Nederīga ievade. Lūdzu ievadiet 'Jā' vai 'nē'.")
+
             except ValueError as e:
                 print(f"Kļūda: {e}")            
         elif choice == "4":
@@ -143,6 +190,15 @@ def main():
             print("\nKopsavilkums pa kategorijām:")
             for category_name, total in sorted(category_totals.items()):
                 print(f"\n{category_name}: {total:.2f} EUR")
+
+            while True:
+                export_choice = input("Vai vēlies eksportēt šo kopsavilkumu uz CSV? (Jā/nē): ").strip().lower()
+                if export_choice in ["jā", "ja", "j"]:
+                    export.export_category_totals_to_csv(category_totals, "kategoriju_kopsavilkums.csv")
+                    break
+                if export_choice in ["nē", "ne", "n"]:
+                    break
+                print("Nederīga ievade. Lūdzu ievadiet 'Jā' vai 'nē'.")
         elif choice == "5":
             try:
                 expenses, total = logic.list_expenses()
@@ -191,7 +247,11 @@ def main():
                         print(f"Nederīga ievade. Lūdzu ievadiet skaitli no 1 līdz {len(expenses)}.")
             except ValueError as e:
                 print(f"Kļūda: {e}")
-                
+        elif choice == "6":
+            try:
+                export.export_to_csv()
+            except Exception as e:
+                print(f"Kļūda eksportējot uz CSV: {e}")        
         elif choice == "7":
             print("Uz redzēšanos!")
             break

@@ -122,4 +122,14 @@ def erase_expense(expense_id):
     deleted_expense = expenses.pop(expense_id - 1)
     storage.save_expenses(expenses)
     return deleted_expense
+
+def main():
+    """Vienkāršs ieejas punkts loģikas moduļa pārbaudei."""
+    expenses = storage.load_expenses()
+    print("Logic modulis darbojas.")
+    print(f"Ielādēti izdevumi: {len(expenses)}")
+
+
+if __name__ == "__main__":
+    main()
     

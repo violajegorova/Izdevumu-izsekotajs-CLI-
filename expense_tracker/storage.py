@@ -43,3 +43,15 @@ def save_expenses(expenses):
     DEFAULT_LIST_FILE.write_text(
         json.dumps(data, ensure_ascii=False, indent=2),
         encoding="utf-8") 
+
+
+def main():
+    """Vienkāršs ieejas punkts storage moduļa pārbaudei."""
+    expenses = load_expenses()
+    print("Storage modulis darbojas.")
+    print(f"Faila ceļš: {DEFAULT_LIST_FILE}")
+    print(f"Ielādēti izdevumi: {len(expenses)}")
+
+
+if __name__ == "__main__":
+    main()
