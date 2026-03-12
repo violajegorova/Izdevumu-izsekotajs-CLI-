@@ -1,83 +1,94 @@
-from datetime import datetime
-
-from storage import load_expenses, save_expenses
 import logic
 
 CATEGORIES = ["Ēdiens", "Transports", "Izklaide", "Mājoklis", "Apģērbs", "Veselība", "Izglītība", "Hobiji", "Ceļojumi", "Citas kategorijas"]
 
+def print_expenses_table(expenses, include_id=False):
+    """Izdrukā izdevumus tabulas formātā ar vienādiem kolonnu platumiem."""
+    if include_id:
+        id_values = [str(i) for i in range(1, len(expenses) + 1)]
+        w_id = max(len("ID"), max((len(v) for v in id_values), default=0))
+
+    date_values = [str(exp.get("date", "")) for exp in expenses]
+    amount_values = [f"{float(exp.get('amount', 0)):.2f} EUR" for exp in expenses]
+    category_values = [str(exp.get("category", "")) for exp in expenses]
+
+    w_date = max(len("Datums"), max((len(v) for v in date_values), default=0))
+    w_amount = max(len("Summa"), max((len(v) for v in amount_values), default=0))
+    w_category = max(len("Kategorija"), max((len(v) for v in category_values), default=0))
+
+    if include_id:
+        header = f"{'ID':<{w_id}} | {'Datums':<{w_date}} | {'Summa':>{w_amount}} | {'Kategorija':<{w_category}} | Apraksts"
+    else:
+        header = f"{'Datums':<{w_date}} | {'Summa':>{w_amount}} | {'Kategorija':<{w_category}} | Apraksts"
+
+    print(header)
+    print("-" * len(header))
+
+    for idx, exp in enumerate(expenses, 1):
+        amount_text = f"{float(exp.get('amount', 0)):.2f} EUR"
+        if include_id:
+            print(
+                f"{idx:<{w_id}} | "
+                f"{str(exp.get('date', '')):<{w_date}} | "
+                f"{amount_text:>{w_amount}} | "
+                f"{str(exp.get('category', '')):<{w_category}} | "
+                f"{str(exp.get('description', ''))}"
+            )
+        else:
+            print(
+                f"{str(exp.get('date', '')):<{w_date}} | "
+                f"{amount_text:>{w_amount}} | "
+                f"{str(exp.get('category', '')):<{w_category}} | "
+                f"{str(exp.get('description', ''))}")
 
 def show_menu():
     # Galvenā izvēlne ar darbībām
     """Parāda galveno izvēlni un atgriež lietotāja izvēli."""
     print("\n1) Pievienot izdevumu")
     print("2) Parādīt izdevumus")
+    print("3) Filtrēt pēc mēneša")
+    print("4) Kopsavilkums pa kategorijām")
+    print("5) Dzēst izdevumu")
     print("7) Iziet")
     return input("\nIzvēlies darbību (1-7): ")
 
-
 def main():
-    print("═════════════════════════════════")
+    print("══════════════════════════════════")
     print("Laipni lūdzam izdevumu izsekotājā!")
-    print("═════════════════════════════════")
+    print("══════════════════════════════════")
     while True:
         choice = show_menu()
         if choice == "1":
-            try:
-                # Datuma ievade un tulitēja validācija
-                while True:
+            continue_adding = True
+            while continue_adding:
+                try:
                     date = input("Ievadi datumu (DD-MM-YYYY) vai atstāj tukšu šodienai: ").strip()
-                    try:
-                        if not date:
-                            date = datetime.today().strftime("%d-%m-%Y")
-                            break
-                        else:
-                            datetime.strptime(date, "%d-%m-%Y")
-                            break
-                    except ValueError:
-                        print("Nederīgs datuma formāts. Lūdzu ievadiet datumu DD-MM-YYYY formātā.")
-                        continue
-                # Summas ievade un tulitēja validācija
-                while True:
-                    try:
-                        amount = float(input("Ievadi izdevuma summu (EUR): ").strip())
-                        if amount <= 0:
-                            print("Izdevuma summa jābūt lielākai par 0.")
-                            continue
-                        break
-                    except ValueError:
-                        print("Nederīga summa. Lūdzu ievadiet skaitli.")
-                        continue
-                # Kategorijas izvēle un validācija   
-                print("\nKategorijas:")
-                for i, cat in enumerate(CATEGORIES, 1):
-                    print(f"{i}) {cat}")
-                while True:
-                    try:
-                        category = int(input("Izvēlies kategoriju (1-10): ").strip())
-                        if not (1 <= category <= 10):
-                            print("Izdevuma kategorijai jābūt no 1 līdz 10.")
-                            continue
-                        break
-                    except ValueError:
-                        print("Nederīga izvēle. Lūdzu ievadiet skaitli no 1 līdz 10.")
-                        continue
-                    continue
-                # Apraksta ievade un validācija
-                while True:
+                    amount = float(input("Ievadi izdevuma summu (EUR): ").strip())
+
+                    print("\nKategorijas:")
+                    for i, cat in enumerate(CATEGORIES, 1):
+                        print(f"{i}) {cat}")
+                    category = int(input("Izvēlies kategoriju (1-10): ").strip())
                     description = input("Ievadi izdevuma aprakstu: ").strip()
-                    if not description:
-                        print("Izdevuma apraksts nedrīkst būt tukšs.")
-                        continue
-                    break
-                logic.add_expense(expense_date=date, amount=amount, category=category, description=description)
-                print("✓ Pievienots: {date} | {category} | {amount:.2f} | {description}".format(
+
+                    logic.add_expense(expense_date=date, amount=amount, category=category, description=description)
+                    print("✓ Pievienots: {date} | {category} | {amount:.2f} | {description}".format(
                     date=date if date else "Šodien",
                     category=CATEGORIES[category - 1],
                     amount=amount,
                     description=description))
-                save_expenses(load_expenses())
-            except ValueError as e:
-                print(f"Kļūda: {e}")
+                except ValueError as e:
+                    print(f"Kļūda: {e}")
+            
+                while True:
+                    response = input("Pievienot vēl? (Jā/nē): ").strip().lower()
+                    if response in ["jā", "ja", "j"]:
+                        break
+                    if response in ["nē", "ne", "n"]:
+                        continue_adding = False
+                        break
+                    else:
+                        print("Nederīga ievade. Lūdzu ievadiet 'Jā' vai 'nē'.")
         elif choice == "2":
             try:
                 expenses, total = logic.list_expenses()
@@ -85,42 +96,107 @@ def main():
                     print("Nav pievienotu izdevumu.")
                     continue
 
-                # Aprēķina kolonnu platumu no faktiskajiem datiem, lai tabula pielāgotos saturam.
-                date_values = [str(exp.get("date", "")) for exp in expenses]
-                amount_values = [f"{float(exp.get('amount', 0)):.2f}" for exp in expenses]
-                category_values = [str(exp.get("category", "")) for exp in expenses]
-                description_values = [str(exp.get("description", "")) for exp in expenses]
+                print_expenses_table(expenses)
 
-                min_w_date = 12
-                min_w_amount = 10
-                min_w_category = 45
-                min_w_desc = 0
-
-                w_date = max(min_w_date, len("Datums"), max((len(v) for v in date_values), default=0))
-                w_amount = max(min_w_amount, len("Summa"), max((len(v) for v in amount_values), default=0))
-                w_category = max(min_w_category, len("Kategorija"), max((len(v) for v in category_values), default=0))
-                w_desc = max(min_w_desc, len("Apraksts"), max((len(v) for v in description_values), default=0))
-
-                # Tabulas kolonnu nosaukumi
-                header = f"\n{'Datums':<{w_date}} | {'Summa':>{w_amount}} | {'Kategorija':<{w_category}} | {'Apraksts':<{w_desc}}"
-                footer = f"{'-' * w_date}---{'-' * w_amount}---{'-' * w_category}---{'-' * w_desc}"
-                print(header)
-                print("-" * len(header))
-                for exp in expenses:
-                    print(
-                        f"{str(exp.get('date', '')):<{w_date}} | "
-                        f"{float(exp.get('amount', 0)):{w_amount}.2f} | "
-                        f"{str(exp.get('category', '')):<{w_category}} | "
-                        f"{str(exp.get('description', '')):<{w_desc}}")
-                print(footer)
                 print(f"Kopējā summa: {total:.2f}")
             except ValueError as e:
                 print(f"Kļūda: {e}")
+        elif choice == "3":
+            try:
+                available_months = logic.get_available_months()
+
+                if not available_months:
+                    print("Nav pieejamu mēnešu ar izdevumiem.")
+                    continue
+
+                print("\nPieejamie mēneši:")
+                for idx, (month, year) in enumerate(available_months, 1):
+                    print(f"{idx}) {month:02d}-{year}")
+
+                while True:
+                    try:
+                        month_choice = int(input(f"Izvēlies mēnesi (1-{len(available_months)}): ").strip())
+                        if not (1 <= month_choice <= len(available_months)):
+                            print(f"Izvēlei jābūt no 1 līdz {len(available_months)}.")
+                            continue
+                        break
+                    except ValueError:
+                        print("Nederīga ievade. Lūdzu ievadiet skaitli.")
+
+                month, year = available_months[month_choice - 1]
+                filtered, filtered_total = logic.list_expenses_by_month(month, year)
+                if not filtered:
+                    print(f"Nav izdevumu par {month:02d}-{year}.")
+                else:
+                    print(f"Izdevumi par {month:02d}-{year}:")
+                    print_expenses_table(filtered)
+                    print(f"Kopējā summa: {filtered_total:.2f}")
+            except ValueError as e:
+                print(f"Kļūda: {e}")            
+        elif choice == "4":
+            category_totals = logic.sum_by_category()
+
+            if not category_totals:
+                print("Nav izdevumu, ko grupēt pa kategorijām.")
+                continue
+
+            print("\nKopsavilkums pa kategorijām:")
+            for category_name, total in sorted(category_totals.items()):
+                print(f"\n{category_name}: {total:.2f} EUR")
+        elif choice == "5":
+            try:
+                expenses, total = logic.list_expenses()
+                if not expenses:
+                    print("Nav pievienotu izdevumu.")
+                    continue
+
+                print_expenses_table(expenses, include_id=True)
+                print(f"Kopējā summa: {total:.2f}")
+
+                continue_deleting = True
+                while continue_deleting:
+                    try:
+                        del_id = int(input("Ievadi dzēšamā izdevuma ID (0 lai atceltu): ").strip())
+                        if del_id == 0:
+                            print("Dzēšana atcelta.")
+                            break
+
+                        deleted_expense = logic.erase_expense(del_id)
+                        print(f"Izdevums dzēsts: {deleted_expense}")
+
+                        try:
+                            expenses, _ = logic.list_expenses()
+                        except ValueError:
+                            expenses = []
+
+                        print("Atjaunināts izdevumu saraksts:")
+                        if expenses:
+                            print_expenses_table(expenses, include_id=True)
+                            print(f"Kopējā summa: {logic.sum_total(expenses):.2f}")
+                        else:
+                            print("Nav pievienotu izdevumu.")
+                            continue_deleting = False
+                            break
+
+                        while True:
+                            response = input("Dzēst vēl? (Jā/nē): ").strip().lower()
+                            if response in ["jā", "ja", "j"]:
+                                break
+                            if response in ["nē", "ne", "n"]:
+                                continue_deleting = False
+                                break
+                            else:
+                                print("Nederīga ievade. Lūdzu ievadiet 'Jā' vai 'nē'.")
+                    except ValueError:
+                        print(f"Nederīga ievade. Lūdzu ievadiet skaitli no 1 līdz {len(expenses)}.")
+            except ValueError as e:
+                print(f"Kļūda: {e}")
+                
         elif choice == "7":
             print("Uz redzēšanos!")
             break
         else:
-            print("Nederīga izvēle. Lūdzu izvēlies no 1 līdz 7.")
+            print("Nederīga izvēle. Lūdzu izvēlies no 1 līdz 7.")   
 
 if __name__ == "__main__":
     main()
