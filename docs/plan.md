@@ -21,12 +21,18 @@ Apraksta ievade ļaus pierakstīt kas tieši par izdevumiem bija.
     - load_expenses - nolasa izdevumus no JSON faila
     - save_epenses - saglabā sarakstu JSON failā
 2. logic.py - programmas loģika
-    - filter_by_month - filtrē izdevumus norādītā mēneša ietvaros
     - sum_total - aprēķina kopējo summu
+    - filter_by_month - filtrē izdevumus norādītā mēneša ietvaros
     - sum_by_category - saskaita katras kateorijas kopējo summu 
     - get_available_months - atgriež unikālo mēnešu skaitu
+    - add_expense - pievieno izdevumus
+    - list_expenses - parāda visus izdevumus
+    - list_expenses_by_month - parāda visus izdevumus izvēlētajā mēnesī
+    - erase_expenses - dzēš izvēlēto izdevumu
 3. export.py - saglabā failu .csv formātā
     - export_to_csv - saglabā izdevumus .csv formātā
+    - export_expenses_to_csv - saglabā izfiltrēta mēneša izdevumus .csv formātā
+    - export_category_totals_to_csv - saglabā kopsavilkumu pa kategorijām .csv formātā
 4. app.py - importē no pārējiem moduļiem un veido interaktīvu izvēlni
     - show_menu - parāda galveno izvelni un atgriež lietotāja izvēli.
     - main - programmas cikls
@@ -40,6 +46,7 @@ Apraksta ievade ļaus pierakstīt kas tieši par izdevumiem bija.
     5. Ievada izdevuma aprakstu: Pārtika
     6. Programma saglābā ievadīto izdevumu un parāda:
         → "✓ Pievienots: 07.03.2026 | 10 EUR | Ēdiens | Pārtika"
+
 ### Scenārijs 2: Ievada negatīvu summu
     1. Lietotājs izvēlas "1. Pievienot izdevumu".
     2. Ievada datumu: "07.03.2026".
@@ -49,6 +56,7 @@ Apraksta ievade ļaus pierakstīt kas tieši par izdevumiem bija.
     6. Programma atbild:
         → "Kļūda. Summai jābūt pozitīvam skaitlim."
     7. Programma ļauj mēģināt vēlreiz.
+
 ### Scenārijs 3: Apskatās visus izdevumus, bet saraksts ir tukšs
     1. Lietotājs izvēlās "2. Parādīt izdevumus"
     2. Izdevumu sarakstā (expenses.json) nav ne viena ieraksta
